@@ -1,0 +1,22 @@
+{
+  "name": "nodemidudev",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "express": "^5.1.0",
+    "play-dl": "^1.9.7",
+    "play-sound": "^1.1.6",
+    "readline": "^1.3.0",
+    "readline-sync": "^1.4.10",
+    "ytdl-core": "^4.11.5",
+    "ytdl-core-discord": "^1.3.1"
+  }
+}

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Registrar Venta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .container {
+        max-width: 960px;
+      }
+
+      /* Para tablas: scroll horizontal en móviles */
+      .table-responsive {
+        overflow-x: auto;
+      }
+
+      /* Ajustes para tablas en pantallas pequeñas */
+      @media (max-width: 576px) {
+        table {
+          font-size: 0.85rem;
+        }
+        .table thead th,
+        .table tbody td {
+          white-space: nowrap;
+          padding: 0.35rem 0.5rem;
+        }
+
+        /* Botones más pequeños y con texto reducido */
+        button.btn,
+        a.btn {
+          font-size: 0.85rem;
+          padding: 0.375rem 0.6rem;
+        }
+
+        /* Inputs y selects ocupan 100% ancho */
+        input.form-control,
+        select.form-select {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Registrar Nueva Venta</h4>
+        </div>
+        <div class="card-body">
+          <!-- Mensajes de error y éxito -->
+          <% if (typeof mensajeError !== 'undefined' && mensajeError) { %>
+          <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            <%= mensajeError %>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <% } %>
+
+          <% if (typeof mensajeExito !== 'undefined' && mensajeExito) { %>
+          <div
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <%= mensajeExito %>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <% } %>
+
+          <form action="/ventas/registrar" method="POST" id="formVenta">
+            <!-- Selección de Cliente -->
+            <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+              <label for="cliente_id" class="form-label mb-2 mb-sm-0">Cliente *</label>
+              <a
+                href="/clientes/registrar?origen=ventas"
+                class="btn btn-sm btn-outline-primary"
+              >
+                + Registrar Cliente
+              </a>
+            </div>
+            <select
+              class="form-select mb-3"
+              name="cliente_id"
+              id="cliente_id"
+              required
+            >
+              <option value="">Seleccione un cliente</option>
+              <% if (typeof clientes !== 'undefined') { %>
+                <% clientes.forEach(cliente => { %>
+                  <option
+                    value="<%= cliente.id %>"
+                    <%= (typeof clienteSeleccionado !== 'undefined' && clienteSeleccionado == cliente.id ? "selected" : "") %>
+                  >
+                    <%= cliente.nombres %> - <%= cliente.documento %>
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+
+            <!-- Tipo de comprobante -->
+            <div class="mb-3">
+              <label for="tipo_comprobante" class="form-label">Tipo de Comprobante *</label>
+              <select
+                class="form-select"
+                name="tipo_comprobante"
+                id="tipo_comprobante"
+                required
+              >
+                <option value="boleta">Boleta</option>
+                <option value="factura">Factura</option>
+                <option value="nota_credito">Nota de Crédito</option>
+              </select>
+            </div>
+
+            <!-- Número de orden -->
+<div class="mb-3">
+  <label for="numero_orden" class="form-label">Número de Orden</label>
+  <input
+    type="text"
+    class="form-control"
+    name="numero_orden"
+    id="numero_orden"
+    value="<%= numeroOrden %>"
+    readonly
+  />
+</div>
+
+            <hr />
+
+            <!-- Productos -->
+            <h5>Productos</h5>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered" id="tablaProductos">
+                <thead class="table-light">
+                  <tr>
+                    <th>Producto</th>
+                    <th>Precio Unitario</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="productosBody">
+                  <!-- Filas agregadas dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary mb-3"
+              id="btnAgregarProducto"
+            >
+              ➕ Agregar Producto
+            </button>
+
+            <!-- Totales -->
+            <div class="row">
+              <div class="col-md-4 offset-md-8">
+                <table class="table">
+                  <tr>
+                    <th>Subtotal:</th>
+                    <td id="subtotalGeneral">S/ 0.00</td>
+                  </tr>
+                  <tr>
+                    <th>IGV (18%):</th>
+                    <td id="impuestoTotal">S/ 0.00</td>
+                  </tr>
+                  <tr class="table-success">
+                    <th>Total:</th>
+                    <td id="totalVenta"><strong>S/ 0.00</strong></td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            <hr />
+
+            <!-- Forma de pago -->
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="forma_pago" class="form-label">Forma de Pago *</label>
+                <select
+                  class="form-select"
+                  name="forma_pago"
+                  id="forma_pago"
+                  required
+                >
+                  <option value="efectivo">Efectivo</option>
+                  <option value="yape">Yape</option>
+                  <option value="tarjeta">Tarjeta</option>
+                  <option value="otros">Otros</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="monto_pagado" class="form-label">Monto Pagado</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  class="form-control"
+                  name="monto_pagado"
+                  id="monto_pagado"
+                  placeholder="Ingrese monto pagado"
+                />
+              </div>
+
+              <div class="col-md-4">
+                <label for="cambio_devuelto" class="form-label">Cambio Devuelto</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="cambio_devuelto"
+                  readonly
+                  value="S/ 0.00"
+                />
+              </div>
+            </div>
+
+            <!-- Campos ocultos para totales -->
+            <input type="hidden" name="subtotal" id="subtotalHidden" value="0" />
+            <input type="hidden" name="impuesto" id="impuestoHidden" value="0" />
+            <input type="hidden" name="total" id="totalHidden" value="0" />
+
+            <div
+              class="mt-4 d-flex flex-wrap gap-2 justify-content-between align-items-center"
+            >
+              <button type="submit" class="btn btn-primary btn-lg">
+                Finalizar Venta
+              </button>
+
+              <a href="/deshboard" class="btn btn-danger btn-lg">
+                Volver al Dashboard
+              </a>
+
+              <a href="/deshboard" class="btn btn-danger btn-lg">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para agregar producto -->
+    <div
+      class="modal fade"
+      id="modalProducto"
+      tabindex="-1"
+      aria-labelledby="modalProductoLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <form id="formAgregarProducto" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalProductoLabel">Agregar Producto</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="producto_id" class="form-label">Producto *</label>
+              <select class="form-select" id="producto_id" required>
+                <option value="">Seleccione un producto</option>
+                <% if (typeof productos !== 'undefined') { %>
+                  <% productos.forEach(producto => { %>
+                  <option
+                    value="<%= producto.id %>"
+                    data-precio="<%= producto.precio %>"
+                    data-stock="<%= producto.stock %>"
+                    data-nombre="<%= producto.nombre %>"
+                  >
+                    <%= producto.nombre %> - S/ <%= producto.precio %> (Stock: <%= producto.stock %>)
+                  </option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="precio_unitario_display" class="form-label">Precio Unitario</label>
+              <input
+                type="text"
+                class="form-control"
+                id="precio_unitario_display"
+                readonly
+                placeholder="S/ 0.00"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="cantidad_producto" class="form-label">Cantidad *</label>
+              <input
+                type="number"
+                min="1"
+                class="form-control"
+                id="cantidad_producto"
+                value="1"
+                required
+              />
+              <div class="form-text" id="stockInfo"></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="subtotal_display" class="form-label">Subtotal</label>
+              <input
+                type="text"
+                class="form-control"
+                id="subtotal_display"
+                readonly
+                placeholder="S/ 0.00"
+              />
+            </div>
+
+            <div class="alert alert-warning d-none" id="alertStock"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Agregar</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <script> document.getElementById("formVenta").addEventListener("submit", (e) => {
+  if (productosSeleccionados.length === 0) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'warning',
+      title: '¡Atención!',
+      text: 'Debe agregar al menos un producto para registrar la venta.'
+    });
+    return;
+  }
+
+  const clienteId = document.getElementById("cliente_id").value;
+  if (!clienteId) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'warning',
+      title: '¡Atención!',
+      text: 'Debe seleccionar un cliente.'
+    });
+    return;
+  }
+
+  // Si quieres mostrar una alerta de éxito después de que el servidor responda,
+  // deberías hacerlo en el backend enviando un mensaje para renderizar en EJS.
+});
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+   <script>
+      // Datos de productos desde el servidor
+      let productos = [];
+      <% if (typeof productos !== 'undefined') { %>
+        productos = <%- JSON.stringify(productos) %>;
+      <% } %>
+
+      console.log('Productos cargados:', productos);
+
+      // Referencias a elementos del DOM
+      const productosBody = document.getElementById("productosBody");
+      const subtotalGeneralEl = document.getElementById("subtotalGeneral");
+      const impuestoTotalEl = document.getElementById("impuestoTotal");
+      const totalVentaEl = document.getElementById("totalVenta");
+      const montoPagadoEl = document.getElementById("monto_pagado");
+      const cambioDevueltoEl = document.getElementById("cambio_devuelto");
+
+      // Referencias del modal
+      const modalProducto = new bootstrap.Modal(document.getElementById("modalProducto"));
+      const formAgregarProducto = document.getElementById("formAgregarProducto");
+      const productoSelect = document.getElementById("producto_id");
+      const cantidadInput = document.getElementById("cantidad_producto");
+      const precioDisplay = document.getElementById("precio_unitario_display");
+      const subtotalDisplay = document.getElementById("subtotal_display");
+      const stockInfo = document.getElementById("stockInfo");
+      const alertStock = document.getElementById("alertStock");
+
+      // Array para productos seleccionados
+      let productosSeleccionados = [];
+
+      // Función para actualizar totales
+      function actualizarTotales() {
+        let subtotal = productosSeleccionados.reduce((acc, p) => acc + p.subtotal, 0);
+        let impuesto = subtotal * 0.18;
+        let total = subtotal + impuesto;
+
+        subtotalGeneralEl.textContent = `S/ ${subtotal.toFixed(2)}`;
+        impuestoTotalEl.textContent = `S/ ${impuesto.toFixed(2)}`;
+        totalVentaEl.innerHTML = `<strong>S/ ${total.toFixed(2)}</strong>`;
+
+        // Actualizar campos ocultos
+        document.getElementById('subtotalHidden').value = subtotal.toFixed(2);
+        document.getElementById('impuestoHidden').value = impuesto.toFixed(2);
+        document.getElementById('totalHidden').value = total.toFixed(2);
+
+        calcularCambio();
+      }
+
+      // Función para actualizar la tabla de productos
+      function actualizarTablaProductos() {
+        productosBody.innerHTML = "";
+        
+        productosSeleccionados.forEach((prod, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>
+              <input type="hidden" name="productos[${index}][producto_id]" value="${prod.producto_id}" />
+              <input type="hidden" name="productos[${index}][nombre_producto]" value="${prod.nombre_producto}" />
+              ${prod.nombre_producto}
+            </td>
+            <td>
+              <input type="hidden" name="productos[${index}][precio_unitario]" value="${prod.precio_unitario}" />
+              S/ ${prod.precio_unitario.toFixed(2)}
+            </td>
+            <td>
+              <input type="hidden" name="productos[${index}][cantidad]" value="${prod.cantidad}" />
+              ${prod.cantidad}
+            </td>
+            <td>S/ ${prod.subtotal.toFixed(2)}</td>
+            <td>
+              <button type="button" class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
+                🗑️ Eliminar
+              </button>
+            </td>
+          `;
+          productosBody.appendChild(tr);
+        });
+
+        actualizarTotales();
+      }
+
+      // Función para eliminar producto
+      function eliminarProducto(index) {
+        productosSeleccionados.splice(index, 1);
+        actualizarTablaProductos();
+      }
+
+      // Event listener para cambio en select de producto
+      productoSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+        const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+
+        precioDisplay.value = precio > 0 ? `S/ ${precio.toFixed(2)}` : '';
+        stockInfo.textContent = stock > 0 ? `Stock disponible: ${stock} unidades` : '';
+        
+        // Resetear cantidad y recalcular
+        cantidadInput.value = 1;
+        actualizarSubtotalModal();
+        
+        // Ocultar alerta de stock
+        alertStock.classList.add('d-none');
+      });
+
+      // Event listener para cambio en cantidad
+      cantidadInput.addEventListener('input', actualizarSubtotalModal);
+
+      // Función para actualizar subtotal en el modal
+      function actualizarSubtotalModal() {
+        const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+        const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+        const cantidad = parseInt(cantidadInput.value) || 0;
+        const subtotal = precio * cantidad;
+
+        subtotalDisplay.value = subtotal > 0 ? `S/ ${subtotal.toFixed(2)}` : '';
+      }
+
+      // Event listener para botón agregar producto
+      document.getElementById("btnAgregarProducto").addEventListener("click", () => {
+        // Limpiar modal
+        productoSelect.value = "";
+        cantidadInput.value = 1;
+        precioDisplay.value = "";
+        subtotalDisplay.value = "";
+        stockInfo.textContent = "";
+        alertStock.classList.add("d-none");
+        
+        modalProducto.show();
+      });
+
+      // Event listener para formulario de agregar producto
+      formAgregarProducto.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        const productoId = productoSelect.value;
+        const cantidad = parseInt(cantidadInput.value, 10);
+
+        if (!productoId) {
+          alert("Seleccione un producto.");
+          return;
+        }
+        
+        if (cantidad <= 0) {
+          alert("Ingrese una cantidad válida.");
+          return;
+        }
+
+        // Buscar producto en la lista
+        const producto = productos.find(p => p.id == productoId);
+        if (!producto) {
+          alert("Producto no encontrado.");
+          return;
+        }
+
+        // Verificar stock
+        const stockDisponible = parseInt(producto.stock);
+        if (cantidad > stockDisponible) {
+          alertStock.textContent = `Stock insuficiente. Disponible: ${stockDisponible} unidades`;
+          alertStock.classList.remove("d-none");
+          return;
+        }
+
+        // Verificar si el producto ya está en la lista
+        const indexExistente = productosSeleccionados.findIndex(p => p.producto_id == productoId);
+        
+        if (indexExistente >= 0) {
+          // Producto ya existe, actualizar cantidad
+          const nuevaCantidad = productosSeleccionados[indexExistente].cantidad + cantidad;
+          
+          if (nuevaCantidad > stockDisponible) {
+            alertStock.textContent = `Stock insuficiente. Disponible: ${stockDisponible} unidades`;
+            alertStock.classList.remove("d-none");
+            return;
+          }
+          
+          productosSeleccionados[indexExistente].cantidad = nuevaCantidad;
+          productosSeleccionados[indexExistente].subtotal = nuevaCantidad * parseFloat(producto.precio);
+        } else {
+          // Nuevo producto, agregar a la lista
+          productosSeleccionados.push({
+            producto_id: producto.id,
+            nombre_producto: producto.nombre,
+            precio_unitario: parseFloat(producto.precio),
+            cantidad: cantidad,
+            subtotal: cantidad * parseFloat(producto.precio)
+          });
+        }
+
+        // Actualizar tabla y cerrar modal
+        actualizarTablaProductos();
+        modalProducto.hide();
+      });
+
+      // Función para calcular cambio
+      function calcularCambio() {
+        const montoPagado = parseFloat(montoPagadoEl.value) || 0;
+        const totalTexto = totalVentaEl.textContent.replace("S/", "").replace("$", "").trim();
+        const total = parseFloat(totalTexto) || 0;
+
+        if (montoPagado >= total && total > 0) {
+          const cambio = montoPagado - total;
+          cambioDevueltoEl.value = `S/ ${cambio.toFixed(2)}`;
+        } else {
+          cambioDevueltoEl.value = "S/ 0.00";
+        }
+      }
+
+      // Event listener para monto pagado
+      montoPagadoEl.addEventListener("input", calcularCambio);
+
+      // Validación antes de enviar el formulario
+      document.getElementById("formVenta").addEventListener("submit", (e) => {
+        if (productosSeleccionados.length === 0) {
+          e.preventDefault();
+          alert("Debe agregar al menos un producto para registrar la venta.");
+          return;
+        }
+
+        // Validar que haya un cliente seleccionado
+        const clienteId = document.getElementById("cliente_id").value;
+        if (!clienteId) {
+          e.preventDefault();
+          alert("Debe seleccionar un cliente.");
+          return;
+        }
+      });
+
+      // Inicializar la tabla al cargar la página
+      actualizarTablaProductos();
+    </script>
+  </body>
+</html>

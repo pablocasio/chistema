@@ -1,0 +1,19 @@
+prueba.txt
+
+ //Códigos válidos 
+
+while (x < 10) {}	  
+while (i !== 0) { doSomething(); }	 
+while ((x + y) > 0) {} 
+while (true) {}	 
+while (x && y) {}	 
+//codigos no validos
+//Código inválido	Motivo del error
+
+while x < 10 {}	// Falta paréntesis () en condición
+while (x = 5) {}// Uso de asignación (=) en vez de comparación
+while (x < 5)	// Falta de llave { para el cuerpo del bucle
+while (x < 5	// Falta paréntesis de cierre )
+while ((x > 5) {}	// Paréntesis desbalanceado
+while (10) 
+//////////////////////////////while-do//////////
