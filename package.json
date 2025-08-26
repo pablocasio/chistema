@@ -17,6 +17,7 @@
     "express": "^5.1.0",
     "express-myconnection": "^1.0.4",
     "express-session": "^1.18.1",
+    "mongoose": "^8.18.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "mysql2": "^3.14.1",
