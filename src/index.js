@@ -4,6 +4,7 @@ import myConnection from "express-myconnection";
 import mysql from "mysql2";
 import path from "path";
 import routes from "./routes/index.js";
+import loginRoutes from "./routes/Login.js";
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(process.cwd(), "src", "views"));
 
 // Usar las rutas
+app.use("/", loginRoutes);
 app.use("/", routes);
 
 // Iniciar servidor
