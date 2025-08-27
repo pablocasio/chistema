@@ -1,5 +1,4 @@
-const mongoose = require("mongoose");
-
+import mongoose from "mongoose";
 const clienteSchema = new mongoose.Schema({
   nombre: {
     type: String,
@@ -42,5 +41,4 @@ clienteSchema.pre("save", function (next) {
   this.fecha_actualizacion = Date.now();
   next();
 });
-
-module.exports = mongoose.model("Cliente", clienteSchema);
+export default mongoose.model("Cliente", clienteSchema);

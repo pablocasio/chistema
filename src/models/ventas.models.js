@@ -1,5 +1,4 @@
-const mongoose = require("mongoose");
-
+import mongoose from "mongoose";
 const ventaSchema = new mongoose.Schema({
   cliente_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -80,4 +79,4 @@ ventaSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Venta", ventaSchema);
+export default mongoose.model("Venta", ventaSchema);

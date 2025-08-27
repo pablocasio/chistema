@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const usuarioSchema = new mongoose.Schema({
   dni: {
@@ -59,4 +59,6 @@ usuarioSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Usuario", usuarioSchema);
+// 👇 Exportación con default (más limpio para importar)
+const Usuario = mongoose.model("Usuario", usuarioSchema);
+export default Usuario;
