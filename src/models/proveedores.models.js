@@ -1,5 +1,4 @@
-const mongoose = require("mongoose");
-
+import mongoose from "mongoose";
 const proveedorSchema = new mongoose.Schema({
   ruc: {
     type: String,
@@ -56,4 +55,4 @@ proveedorSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Proveedor", proveedorSchema);
+export default mongoose.model("Proveedor", proveedorSchema);

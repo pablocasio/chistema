@@ -8,6 +8,9 @@ import {
   getClientesEliminar,
   getClientesEditar,
   postClientesEditar,
+  postClientesReniec,
+  postClientesValidarExistencia,
+  getClientesBuscar,
 } from "../controllers/Clientes.controllers.js";
 
 const router = express.Router();
@@ -20,5 +23,8 @@ router.get("/clientes/exportar/excel", getExportarClientesExcel);
 router.get("/clientes/eliminar/:id", getClientesEliminar);
 router.get("/clientes/editar/:id", getClientesEditar);
 router.post("/clientes/editar/:id", postClientesEditar);
+router.post("/clientes/reniec", postClientesReniec);
+router.post("/clientes/validar-existencia", postClientesValidarExistencia);
+router.get("/clientes/buscar", getClientesBuscar);
 
 export default router;

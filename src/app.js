@@ -5,6 +5,9 @@ import mysql from "mysql2";
 import path from "path";
 import routes from "./routes/index.js";
 import loginRoutes from "./routes/Login.js";
+import Clientes from "./routes/Clientes.js";
+import Productos from "./routes/Productos.js";
+import Ventas from "./routes/Ventas.js";
 
 const app = express();
 
@@ -49,5 +52,8 @@ app.set("views", path.join(process.cwd(), "src", "views"));
 // Usar las rutas
 app.use("/", loginRoutes);
 app.use("/", routes);
+app.use("/", Clientes);
+app.use("/", Productos);
+app.use("/", Ventas);
 
 export default app;
