@@ -1,13 +1,14 @@
 import Cliente from "../models/clientes.models.js";
 import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
+import axios from "axios";
 
 // 📌 Listar clientes
 export const getClientes = async (req, res) => {
   if (!req.session.usuario) return res.redirect("/login");
 
   try {
-    const clientes = await Cliente.find();
+    const clientes = await Cliente.find().sort({ fecha_registro: -1 });
     res.render("clientes", { clientes });
   } catch (err) {
     console.error("Error al obtener clientes:", err);
@@ -30,65 +31,40 @@ export const getRegistrarCliente = async (req, res) => {
 
 // 📌 Registrar cliente
 export const postRegistrarCliente = async (req, res) => {
-  if (!req.session.usuario) return res.redirect("/login");
-
-  const {
-    tipo_documento,
-    numero_documento,
-    nombres,
-    apellido_paterno,
-    apellido_materno,
-    codigo_verificacion,
-    direccion,
-    telefono,
-    email,
-    categoria,
-  } = req.body;
-
-  if (
-    !tipo_documento ||
-    !numero_documento ||
-    !nombres ||
-    !apellido_paterno ||
-    !apellido_materno
-  ) {
-    req.session.mensajeError = "Por favor, completa los campos obligatorios.";
-    return res.redirect("/clientes/registrar");
-  }
-
   try {
-    const nuevoCliente = new Cliente({
-      tipo_documento,
-      documento: numero_documento,
+    const {
       nombres,
       apellido_paterno,
       apellido_materno,
-      codigo_verificacion,
+      numero_documento,
+      tipo_documento,
       direccion,
       telefono,
       email,
-      categoria,
-      fecha_registro: new Date(),
+    } = req.body;
+
+    const nuevoCliente = new Cliente({
+      nombre: nombres, // 👈 ajustado
+      apellido: `${apellido_paterno} ${apellido_materno}`, // 👈 ajustado
+      numero_documento,
+      tipo_documento,
+      direccion,
+      telefono,
+      email,
     });
 
     await nuevoCliente.save();
-
-    req.session.clienteSeleccionadoId = nuevoCliente._id;
-    req.session.mensajeExito =
-      "Cliente registrado y seleccionado exitosamente.";
-
-    res.redirect("/ventas/nueva");
+    res.redirect("/clientes");
   } catch (err) {
     console.error("Error al registrar cliente:", err);
-    req.session.mensajeError = "Error al registrar el cliente.";
-    res.redirect("/clientes/registrar");
+    res.status(500).send("Error al registrar cliente");
   }
 };
 
 // 📌 Exportar clientes en PDF
 export const getExportarClientesPDF = async (req, res) => {
   try {
-    const clientes = await Cliente.find();
+    const clientes = await Cliente.find().sort({ fecha_registro: -1 });
 
     const doc = new PDFDocument({ margin: 30, size: "A4" });
     res.setHeader("Content-Type", "application/pdf");
@@ -105,9 +81,9 @@ export const getExportarClientesPDF = async (req, res) => {
         .text(
           `${i + 1}. ${c.nombres} ${c.apellido_paterno} ${
             c.apellido_materno
-          } | ${c.documento} | ${c.telefono} | ${c.email} | Categoría: ${
-            c.categoria || "Sin categoría"
-          }`
+          } | ${c.documento} | ${c.telefono || "-"} | ${
+            c.email || "-"
+          } | Categoría: ${c.categoria || "Sin categoría"}`
         );
       doc.moveDown(0.5);
     });
@@ -121,26 +97,26 @@ export const getExportarClientesPDF = async (req, res) => {
 // 📌 Exportar clientes en Excel
 export const getExportarClientesExcel = async (req, res) => {
   try {
-    const clientes = await Cliente.find();
+    const clientes = await Cliente.find().sort({ fecha_registro: -1 });
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Clientes");
 
     sheet.columns = [
-      { header: "ID", key: "_id" },
-      { header: "Tipo Doc", key: "tipo_documento" },
-      { header: "Documento", key: "documento" },
-      { header: "Nombres", key: "nombres" },
-      { header: "Apellido Paterno", key: "apellido_paterno" },
-      { header: "Apellido Materno", key: "apellido_materno" },
-      { header: "Cod. Verif.", key: "codigo_verificacion" },
-      { header: "Dirección", key: "direccion" },
-      { header: "Teléfono", key: "telefono" },
-      { header: "Correo", key: "email" },
-      { header: "Categoría", key: "categoria" },
+      { header: "ID", key: "_id", width: 24 },
+      { header: "Tipo Doc", key: "tipo_documento", width: 12 },
+      { header: "Documento", key: "documento", width: 15 },
+      { header: "Nombres", key: "nombres", width: 25 },
+      { header: "Apellido Paterno", key: "apellido_paterno", width: 20 },
+      { header: "Apellido Materno", key: "apellido_materno", width: 20 },
+      { header: "Cod. Verif.", key: "codigo_verificacion", width: 12 },
+      { header: "Dirección", key: "direccion", width: 30 },
+      { header: "Teléfono", key: "telefono", width: 15 },
+      { header: "Correo", key: "email", width: 25 },
+      { header: "Categoría", key: "categoria", width: 15 },
     ];
 
-    sheet.addRows(clientes);
+    clientes.forEach((c) => sheet.addRow(c.toObject()));
 
     res.setHeader(
       "Content-Type",
@@ -187,14 +163,10 @@ export const postClientesEditar = async (req, res) => {
     res.send("Error al guardar los cambios.");
   }
 };
-//paraconsultar a la reniec//
-// Reemplaza este token por el tuyo
-// Token personal de apis.net.pe
-// Token personal de apis.net.pe
 
+// 📌 Consulta a RENIEC
 const API_TOKEN = "apis-token-16433.g8U1oX2tVqcR8thWFNGJa7rqUJXj8oo2";
 
-// Consulta a la API de RENIEC
 export const postClientesReniec = async (req, res) => {
   const { numero } = req.body;
 
@@ -221,7 +193,6 @@ export const postClientesReniec = async (req, res) => {
         .json({ success: false, message: "DNI no encontrado." });
     }
 
-    // Enviar datos separados al frontend
     res.json({
       success: true,
       datos: {
@@ -241,84 +212,65 @@ export const postClientesReniec = async (req, res) => {
   }
 };
 
-// Validar existencia de cliente en la base de datos
+// 📌 Validar existencia de cliente
+
 export const postClientesValidarExistencia = async (req, res) => {
   const { numero } = req.body;
 
-  req.getConnection((err, conn) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ success: false, error: "Error de conexión" });
+  try {
+    const cliente = await Cliente.findOne({ documento: numero });
 
-    const query = "SELECT * FROM clientes WHERE documento = ? LIMIT 1";
-    conn.query(query, [numero], (err, results) => {
-      if (err)
-        return res
-          .status(500)
-          .json({ success: false, error: "Error en la consulta" });
-
-      if (results.length > 0) {
-        const cliente = results[0];
-        res.json({
-          success: true,
-          cliente: {
-            nombres: cliente.nombres,
-            apellido_paterno: cliente.apellido_paterno,
-            apellido_materno: cliente.apellido_materno,
-            numero_documento: cliente.documento, // Cambié aquí para enviar el campo correcto
-            codigo_verificacion: cliente.codigo_verificacion || "",
-          },
-        });
-      } else {
-        res.json({ success: false });
-      }
-    });
-  });
+    if (cliente) {
+      res.json({
+        success: true,
+        cliente: {
+          nombres: cliente.nombres,
+          apellido_paterno: cliente.apellido_paterno,
+          apellido_materno: cliente.apellido_materno,
+          numero_documento: cliente.documento,
+          codigo_verificacion: cliente.codigo_verificacion || "",
+        },
+      });
+    } else {
+      res.json({ success: false });
+    }
+  } catch (err) {
+    console.error("Error al validar cliente:", err);
+    res.status(500).json({ success: false, error: "Error en la validación" });
+  }
 };
 
-// Buscar clientes (GET)
+// 📌 Buscar clientes
 
 export const getClientesBuscar = async (req, res) => {
   if (!req.session.usuario) return res.redirect("/login");
 
   const q = req.query.q ? req.query.q.trim() : "";
 
-  req.getConnection((err, conn) => {
-    if (err) {
-      console.error("Error DB:", err);
-      return res.send("Error de conexión a la base de datos.");
-    }
-
-    let sql;
-    let values;
-
+  try {
+    let clientes;
     if (q === "") {
-      sql = `SELECT * FROM clientes ORDER BY fecha_registro DESC LIMIT 20`;
-      values = [];
+      clientes = await Cliente.find().sort({ fecha_registro: -1 }).limit(20);
     } else {
-      sql = `
-        SELECT * FROM clientes
-        WHERE nombres LIKE ? OR documento LIKE ?
-        ORDER BY fecha_registro DESC
-        LIMIT 20
-      `;
-      values = [`%${q}%`, `%${q}%`];
+      clientes = await Cliente.find({
+        $or: [
+          { nombres: { $regex: q, $options: "i" } },
+          { documento: { $regex: q, $options: "i" } },
+        ],
+      })
+        .sort({ fecha_registro: -1 })
+        .limit(20);
     }
 
-    conn.query(sql, values, (err, clientes) => {
-      if (err) {
-        console.error("Error al buscar clientes:", err);
-        return res.send("Error al realizar la búsqueda.");
-      }
-
-      res.render("clientes", {
-        clientes,
-        mensajeError:
-          clientes.length === 0 ? "No se encontraron resultados." : null,
-        mensajeExito: null,
-        q,
-      });
+    res.render("clientes", {
+      clientes,
+      mensajeError:
+        clientes.length === 0 ? "No se encontraron resultados." : null,
+      mensajeExito: null,
+      q,
     });
-  });
+  } catch (err) {
+    console.error("Error al buscar clientes:", err);
+    res.send("Error al realizar la búsqueda.");
+  }
 };

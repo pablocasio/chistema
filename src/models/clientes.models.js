@@ -1,25 +1,56 @@
 import mongoose from "mongoose";
+
 const clienteSchema = new mongoose.Schema({
+  tipo_doc: {
+    type: String,
+    enum: ["DNI", "RUC", "CE", "PASAPORTE"],
+    required: true,
+  },
+  numero_doc: {
+    type: String,
+    required: true,
+    unique: true,
+    maxlength: 20,
+  },
   nombre: {
     type: String,
     required: true,
     maxlength: 100,
   },
-  apellido: {
+  apellido_paterno: {
     type: String,
     required: true,
     maxlength: 100,
   },
-  email: {
+  apellido_materno: {
     type: String,
     required: true,
     maxlength: 100,
-    unique: true,
+  },
+  cod_verif: {
+    type: String,
+    maxlength: 5,
+    default: "",
+  },
+  direccion: {
+    type: String,
+    maxlength: 200,
+    default: "",
   },
   telefono: {
     type: String,
     maxlength: 20,
     default: "",
+  },
+  correo: {
+    type: String,
+    required: true,
+    maxlength: 100,
+    unique: true,
+  },
+  categoria: {
+    type: String,
+    default: "Sin categoría",
   },
   estado: {
     type: String,
@@ -36,9 +67,10 @@ const clienteSchema = new mongoose.Schema({
   },
 });
 
-// Middleware para actualizar la fecha_actualizacion automáticamente
+// 📌 Middleware para actualizar `fecha_actualizacion` automáticamente
 clienteSchema.pre("save", function (next) {
   this.fecha_actualizacion = Date.now();
   next();
 });
+
 export default mongoose.model("Cliente", clienteSchema);

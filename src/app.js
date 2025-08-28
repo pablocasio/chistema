@@ -8,6 +8,8 @@ import loginRoutes from "./routes/Login.js";
 import Clientes from "./routes/Clientes.js";
 import Productos from "./routes/Productos.js";
 import Ventas from "./routes/Ventas.js";
+import Prove from "./routes/Proveedore.js";
+import Reportes from "./routes/Reportes.js";
 
 const app = express();
 
@@ -55,5 +57,7 @@ app.use("/", routes);
 app.use("/", Clientes);
 app.use("/", Productos);
 app.use("/", Ventas);
+app.use("/", Prove);
+app.use("/", Reportes);
 
 export default app;
