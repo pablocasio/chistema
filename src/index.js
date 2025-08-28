@@ -1,9 +1,14 @@
 import express from "express";
 import app from "./app.js";
-import dontev from "dotenv";
+import dotenv from "dotenv";
 import conectarDB from "./b.js";
+
+// Cargar variables de entorno antes de usarlas
+dotenv.config();
+
+// Conectar a la BD
 conectarDB();
-dontev.config(); //carga la variable de entorno
+
 // Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
