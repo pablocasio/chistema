@@ -1,7 +1,6 @@
 import express from "express";
 import session from "express-session";
 import myConnection from "express-myconnection";
-import mysql from "mysql2";
 import path from "path";
 import routes from "./routes/index.js";
 import loginRoutes from "./routes/Login.js";
@@ -31,20 +30,6 @@ app.use(
     resave: false,
     saveUninitialized: false,
   })
-);
-
-// Conexión a MySQL
-app.use(
-  myConnection(
-    mysql,
-    {
-      host: "localhost",
-      user: "root",
-      password: "tu_contraseña", // 🔐 Reemplaza con tu contraseña real o usa dotenv
-      database: "sistema_ventas",
-    },
-    "single"
-  )
 );
 
 // Configurar motor de vistas EJS
