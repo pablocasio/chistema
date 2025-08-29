@@ -1,16 +1,11 @@
 import express from "express";
-import app from "./app.js";
 import dotenv from "dotenv";
-import conectarDB from "./b.js";
 
-// Cargar variables de entorno antes de usarlas
 dotenv.config();
 
-// Conectar a la BD
-conectarDB();
+const app = express();
 
-// Iniciar servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 8000; // 👈 forzamos 8000 si no hay PORT
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });
