@@ -45,4 +45,9 @@ app.use("/ventas", Ventas);
 app.use("/proveedores", Prove);
 app.use("/reportes", Reportes);
 
+// 👇 Agregar ruta raíz para evitar "Cannot GET /"
+app.get("/", (req, res) => {
+  res.send("✅ Servidor funcionando correctamente!");
+});
+
 export default app;
