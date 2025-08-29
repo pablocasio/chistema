@@ -1,8 +1,8 @@
 import express from "express";
 import session from "express-session";
-import myConnection from "express-myconnection";
 import path from "path";
-import routes from "./routes/index.js";
+
+// Rutas
 import loginRoutes from "./routes/Login.js";
 import Clientes from "./routes/Clientes.js";
 import Productos from "./routes/Productos.js";
@@ -20,13 +20,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(process.cwd(), "src", "public")));
 app.use(
   "/boletas",
-  express.static(path.join(process.cwd(), "src", "public", "boletas"))
+  express.static(path.join(process.cwd(), "src", "public/boletas"))
 );
 
 // Configurar sesiones
 app.use(
   session({
-    secret: "secreto123", // 🔒 Cambia esto en producción por una variable de entorno
+    secret: "secreto123",
     resave: false,
     saveUninitialized: false,
   })
@@ -34,20 +34,24 @@ app.use(
 
 // Configurar motor de vistas EJS
 app.set("view engine", "ejs");
-app.set("views", path.join(process.cwd(), "src", "views"));
+app.set("views", path.join(process.cwd(), "src/views"));
 
-// Usar las rutas
-app.use("/", loginRoutes);
-app.use("/routes", routes);
+// Rutas principales
+app.use("/", loginRoutes); // Login y dashboard
 app.use("/clientes", Clientes);
 app.use("/productos", Productos);
 app.use("/ventas", Ventas);
 app.use("/proveedores", Prove);
 app.use("/reportes", Reportes);
 
-// 👇 Agregar ruta raíz para evitar "Cannot GET /"
+// 🚨 Ruta raíz: redirige al login
 app.get("/", (req, res) => {
-  res.send("✅ Servidor funcionando correctamente!");
+  res.redirect("/login");
+});
+
+// Ruta fallback para cualquier otra no definida
+app.use((req, res) => {
+  res.status(404).send("❌ Página no encontrada");
 });
 
 export default app;
