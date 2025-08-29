@@ -1,15 +1,13 @@
 import express from "express";
 import session from "express-session";
 import path from "path";
-
-// Rutas
 import loginRoutes from "./routes/Login.js";
 import Clientes from "./routes/Clientes.js";
 import Productos from "./routes/Productos.js";
 import Ventas from "./routes/Ventas.js";
 import Prove from "./routes/Proveedore.js";
 import Reportes from "./routes/Reportes.js";
-
+import Usuarios from "./models/usaurios.models.js";
 const app = express();
 
 // Middleware para leer formularios y JSON
@@ -38,20 +36,10 @@ app.set("views", path.join(process.cwd(), "src/views"));
 
 // Rutas principales
 app.use("/", loginRoutes); // Login y dashboard
-app.use("/clientes", Clientes);
-app.use("/productos", Productos);
-app.use("/ventas", Ventas);
-app.use("/proveedores", Prove);
-app.use("/reportes", Reportes);
-
-// 🚨 Ruta raíz: redirige al login
-app.get("/", (req, res) => {
-  res.redirect("/login");
-});
-
-// Ruta fallback para cualquier otra no definida
-app.use((req, res) => {
-  res.status(404).send("❌ Página no encontrada");
-});
-
+app.use("/", Clientes);
+app.use("/", Productos);
+app.use("/", Ventas);
+app.use("", Prove);
+app.use("/", Reportes);
+app.use("/", Usuarios);
 export default app;
