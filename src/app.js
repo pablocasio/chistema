@@ -38,11 +38,11 @@ app.set("views", path.join(process.cwd(), "src", "views"));
 
 // Usar las rutas
 app.use("/", loginRoutes);
-app.use("/", routes);
-app.use("/", Clientes);
-app.use("/", Productos);
-app.use("/", Ventas);
-app.use("/", Prove);
-app.use("/", Reportes);
+app.use("/routes", routes);
+app.use("/clientes", Clientes);
+app.use("/productos", Productos);
+app.use("/ventas", Ventas);
+app.use("/proveedores", Prove);
+app.use("/reportes", Reportes);
 
 export default app;
